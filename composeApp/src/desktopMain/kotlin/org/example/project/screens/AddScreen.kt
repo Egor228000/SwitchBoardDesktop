@@ -5,6 +5,7 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -33,7 +34,8 @@ import java.io.File
 fun AddScreen(
     addViewModel: AddViewModel,
 ) {
-    val images = addViewModel.images.collectAsStateWithLifecycle()
+    val images by addViewModel.images.collectAsStateWithLifecycle()
+    val name by addViewModel.name.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -42,7 +44,19 @@ fun AddScreen(
     ) {
         Row(
         ) {
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
 
+                    },
+                    label = {Text("Имя")}
+                )
+            }
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.End,
@@ -51,17 +65,12 @@ fun AddScreen(
 
 
                 ImageGalleryDropZone(
-                    images.value,
-                    onImageDropped = { addViewModel.addImage(it) }
+                    images,
+                    onImageDropped = { addViewModel.addImage(it) },
+                    onClickClear = {addViewModel.clearImage()}
                 )
 
-                Button(
-                    onClick = {
-                        addViewModel.clearImage()
-                    }
-                ) {
-                    Text("Очистить")
-                }
+
             }
 
         }
@@ -75,6 +84,7 @@ fun AddScreen(
 fun ImageGalleryDropZone(
     images: List<ImageBitmap>,
     onImageDropped: (ImageBitmap) -> Unit,
+    onClickClear: () -> Unit
 ) {
 
     // State to track hover effect and loaded bitmaps
@@ -120,12 +130,12 @@ fun ImageGalleryDropZone(
 
     // Fixed size drop area
     val height =
-        if (images.size == 1) 300.dp
+        if (images.size == 1) 600.dp
         else if (images.size == 2) 600.dp
         else if (images.size >= 3) 880.dp
         else if (images.isEmpty()) 600.dp
         else 300.dp
-    val width = if (images.isEmpty()) 600.dp else 300.dp
+    val width = if (images.isEmpty()) 600.dp else if(images.size == 1) 600.dp else 300.dp
 
     Card(
         modifier = Modifier
@@ -146,6 +156,7 @@ fun ImageGalleryDropZone(
                 .background(if (isHovering) Color(0xFFE0E0E0) else Color(0xFFF5F5F5)),
             contentAlignment = Alignment.Center
         ) {
+
             if (images.isEmpty()) {
                 if (isHovering) {
                     Image(
@@ -163,7 +174,7 @@ fun ImageGalleryDropZone(
 
             } else {
                 Column(
-                    horizontalAlignment = Alignment.End,
+                    horizontalAlignment = if (images.size == 1) Alignment.CenterHorizontally else Alignment.End,
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
                         .fillMaxSize(),
@@ -175,10 +186,25 @@ fun ImageGalleryDropZone(
                             bitmap = img,
                             contentDescription = null,
                             modifier = Modifier
-                                .size(300.dp),
+                                .size(if (images.size == 1) 600.dp else 300.dp),
                             contentScale = ContentScale.Crop
                         )
                     }
+
+                }
+
+            }
+            Column(
+                verticalArrangement = Arrangement.Bottom,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Button(
+                    onClick = {
+                        onClickClear()
+                    },
+                    modifier = Modifier.fillMaxWidth(1f)
+                ) {
+                    Text("Очистить")
                 }
             }
         }

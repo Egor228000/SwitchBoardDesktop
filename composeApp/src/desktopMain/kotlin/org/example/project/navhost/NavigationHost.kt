@@ -136,12 +136,13 @@ fun NavigationHost(navigation: NavHostController) {
                     }
                 }
             },
+            modifier = Modifier
+                .padding(paddingValues),
             content = {
                 NavHost(
                     navController = navigation,
                     startDestination = Screen.Add.route,
-                    modifier = Modifier
-                        .padding(paddingValues)
+
                 ) {
 
                     composable(Screen.Add.route) {

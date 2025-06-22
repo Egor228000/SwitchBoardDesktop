@@ -24,4 +24,10 @@ class AddViewModel() : ViewModel() {
         _images.value = _images.value + img
     }
 
+    private val _name = MutableStateFlow("")
+    val name: StateFlow<String> = _name
+
+    fun updateName(newName: String) {
+        _name.value = newName
+    }
 }
