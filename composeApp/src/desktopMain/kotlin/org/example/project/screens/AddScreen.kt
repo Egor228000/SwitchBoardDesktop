@@ -1,60 +1,40 @@
 package org.example.project.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.DragAndDropTransferAction
-import androidx.compose.ui.draganddrop.DragAndDropTransferData
-import androidx.compose.ui.draganddrop.DragAndDropTransferable
 import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.example.project.viewmodel.AddViewModel
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.skia.Image
 import switchboardexe.composeapp.generated.resources.Res
 import switchboardexe.composeapp.generated.resources.img_box_svgrepo_com
 import java.awt.datatransfer.DataFlavor
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
-import javax.imageio.ImageIO
 
 @Composable
-fun AddScreen() {
+fun AddScreen(
+    addViewModel: AddViewModel,
+) {
+    val images = addViewModel.images.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -62,24 +42,25 @@ fun AddScreen() {
     ) {
         Row(
         ) {
-            GalleryWithDrop()
 
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Card(
-                    shape = RoundedCornerShape(5),
-                    modifier = Modifier
-                        .size(450.dp)
-                ) {
-                    Image(
-                        painterResource(Res.drawable.img_box_svgrepo_com),
-                        null,
-                        modifier = Modifier.fillMaxSize(0.2f),
 
-                        )
+
+                ImageGalleryDropZone(
+                    images.value,
+                    onImageDropped = { addViewModel.addImage(it) }
+                )
+
+                Button(
+                    onClick = {
+                        addViewModel.clearImage()
+                    }
+                ) {
+                    Text("Очистить")
                 }
             }
 
@@ -89,38 +70,47 @@ fun AddScreen() {
 }
 
 
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ImageDropZone(
-    modifier: Modifier = Modifier,
-    onImagesDropped: (List<File>) -> Unit
+fun ImageGalleryDropZone(
+    images: List<ImageBitmap>,
+    onImageDropped: (ImageBitmap) -> Unit,
 ) {
+
+    // State to track hover effect and loaded bitmaps
     var isHovering by remember { mutableStateOf(false) }
 
-    // Create a DragAndDropTarget that handles file drops
+    // Drag-and-drop target implementation
     val dropTarget = remember {
         object : DragAndDropTarget {
             override fun onStarted(event: DragAndDropEvent) {
                 isHovering = true
             }
+
             override fun onEnded(event: DragAndDropEvent) {
                 isHovering = false
             }
+
             override fun onDrop(event: DragAndDropEvent): Boolean {
                 isHovering = false
-                // Extract the list of files from the transferable
                 val dropped = (event.awtTransferable
                     .getTransferData(DataFlavor.javaFileListFlavor) as? List<*>)
                     ?.filterIsInstance<File>()
                     ?: emptyList()
 
-                // Filter to common image extensions
-                val images = dropped.filter { file ->
+                // Keep only common image files
+                val imageFiles = dropped.filter { file ->
                     file.extension.lowercase() in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp")
                 }
-                if (images.isNotEmpty()) {
-                    onImagesDropped(images)
+                if (imageFiles.isNotEmpty()) {
+                    // Load each into an ImageBitmap
+                    imageFiles.forEach { file ->
+                        val bytes = file.readBytes()
+                        val bmp = Image
+                            .makeFromEncoded(bytes)
+                            .toComposeImageBitmap()
+                        onImageDropped(bmp)    //
+                    }
                     return true
                 }
                 return false
@@ -128,43 +118,68 @@ fun ImageDropZone(
         }
     }
 
-    Box(
-        modifier = modifier
-            .size(300.dp)
-            .background(if (isHovering) Color(0xFFE0E0E0) else Color(0xFFF5F5F5))
-            .border(2.dp, if (isHovering) Color.Blue else Color.Gray)
+    // Fixed size drop area
+    val height =
+        if (images.size == 1) 300.dp
+        else if (images.size == 2) 600.dp
+        else if (images.size >= 3) 880.dp
+        else if (images.isEmpty()) 600.dp
+        else 300.dp
+    val width = if (images.isEmpty()) 600.dp else 300.dp
+
+    Card(
+        modifier = Modifier
+            .width(width)
+            .height(height)
             .dragAndDropTarget(
                 shouldStartDragAndDrop = { true },
                 target = dropTarget
             ),
-        contentAlignment = Alignment.Center
+        border = BorderStroke(
+            width = if (isHovering) 2.dp else 1.dp,
+            color = if (isHovering) Color.Blue else Color.Gray
+        )
     ) {
-        Text(if (isHovering) "" else "Перетащите изображение сюда")
-    }
-}
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(if (isHovering) Color(0xFFE0E0E0) else Color(0xFFF5F5F5)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (images.isEmpty()) {
+                if (isHovering) {
+                    Image(
+                        painterResource(Res.drawable.img_box_svgrepo_com),
+                        null,
+                        modifier = Modifier
+                            .size(100.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Перетащите изображение сюда",
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-@Composable
-fun GalleryWithDrop() {
-    // Keep ImageBitmaps in a mutable list so Compose will recompose when new images arrive
-    val images = remember { mutableStateListOf<ImageBitmap>() }
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
 
-    Column {
-        ImageDropZone { files ->
-            files.forEach { file ->
-                // Load each file into an ImageBitmap via Skia
-                val bytes = file.readBytes()
-                val bmp = org.jetbrains.skia.Image.makeFromEncoded(bytes).asImageBitmap()
-                images += bmp
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        Row() {
-            images.forEach { img ->
-                Image(
-                    bitmap = img,
-                    contentDescription = null,
-                    modifier = Modifier.size(100.dp)
-                )
+                    images.forEach { img ->
+                        Image(
+                            bitmap = img,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(300.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
         }
     }
