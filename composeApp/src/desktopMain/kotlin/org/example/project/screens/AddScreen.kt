@@ -7,6 +7,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,19 +37,64 @@ import java.io.File
 fun AddScreen(
     addViewModel: AddViewModel,
 ) {
+
     val images by addViewModel.images.collectAsStateWithLifecycle()
     val name by addViewModel.name.collectAsStateWithLifecycle()
+    var selectedChip by remember { mutableStateOf(0) }
 
     Column(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxSize()
     ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth(1f)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
+                AssistChip(
+                    onClick = {
+                        selectedChip = 1
+                    },
+                    label = {Text("Клавиатура")},
+                    colors = AssistChipDefaults.assistChipColors(
+                        if (selectedChip == 1) Color.LightGray else Color.White
+                    )
+                )
+                AssistChip(
+                    onClick = {
+                        selectedChip = 2
+                    },
+                    label = {Text("Свитчи")},
+                    colors = AssistChipDefaults.assistChipColors(
+                        if (selectedChip == 2) Color.LightGray else Color.White
+                    )
+                )
+                AssistChip(
+                    onClick = {
+                        selectedChip = 3
+                    },
+                    label = {Text("Кейкапы")},
+                    colors = AssistChipDefaults.assistChipColors(
+                        if (selectedChip == 3) Color.LightGray else Color.White
+                    )
+                )
+            }
+
+
+        }
         Row(
+
         ) {
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .weight(0.5f)
+
             ) {
                 OutlinedTextField(
                     value = name,
@@ -54,13 +102,75 @@ fun AddScreen(
                         addViewModel.updateName(newValue)
 
                     },
-                    label = {Text("Имя")}
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Имя")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Описание")},
+                    maxLines = 3
+
+
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Свитчи")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Кейкапы")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Форм-фактор")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Цена")},
+                    maxLines = 1
                 )
             }
+            Spacer(modifier = Modifier.padding(horizontal = 16.dp))
             Column(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.End,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .weight(0.5f)
             ) {
 
 
