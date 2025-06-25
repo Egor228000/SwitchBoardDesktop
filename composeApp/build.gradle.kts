@@ -14,6 +14,8 @@ kotlin {
         val desktopMain by getting
         
         commonMain.dependencies {
+            implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0-beta04")
+
             implementation("io.ktor:ktor-client-core:3.2.0")
             implementation("io.ktor:ktor-client-cio:3.2.0")
             implementation("io.ktor:ktor-client-content-negotiation:3.2.0")
@@ -22,7 +24,7 @@ kotlin {
 
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material3)
+            implementation("org.jetbrains.compose.material3:material3-desktop:1.9.0-alpha02")
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
