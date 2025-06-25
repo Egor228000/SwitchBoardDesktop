@@ -12,10 +12,10 @@ import java.awt.Dimension
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "SwitchBoardExe",
+        title = "SwitchBoard",
         icon = painterResource(Res.drawable.icon_img)
     ) {
-        window.minimumSize = Dimension(700, 600)
+        window.minimumSize = Dimension(700, 850)
         val navigation = rememberNavController()
         NavigationHost(navigation)
     }
