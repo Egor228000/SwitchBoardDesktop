@@ -44,6 +44,15 @@ fun AddScreen(
     addViewModel: AddViewModel,
 ) {
 
+    LaunchedEffect(Unit) {
+        addViewModel.loadSwitchNames()
+        addViewModel.loadSwichType()
+        addViewModel.loadKeycapsType()
+        addViewModel.loadKeycapsMaterial()
+        addViewModel.loadFormFactor()
+    }
+
+
     val images by addViewModel.images.collectAsStateWithLifecycle()
     val name by addViewModel.name.collectAsStateWithLifecycle()
     val description by addViewModel.description.collectAsStateWithLifecycle()
@@ -54,22 +63,28 @@ fun AddScreen(
     val formFactor by addViewModel.formFactor.collectAsStateWithLifecycle()
     val stockQuantity by addViewModel.stockQuantity.collectAsStateWithLifecycle()
     val price by addViewModel.price.collectAsStateWithLifecycle()
+
     var expandedSwichName by remember { mutableStateOf(false) }
+    val listSwichName by addViewModel.listSwitchName.collectAsStateWithLifecycle()
+
     var expandedSwichType by remember { mutableStateOf(false) }
+    val listSwichType by addViewModel.listSwichType.collectAsStateWithLifecycle()
 
     var expandedkeycapsType by remember { mutableStateOf(false) }
+    val listKeycapsType by addViewModel.listKeycapsType.collectAsStateWithLifecycle()
+
     var expandedkeycapsMaterial by remember { mutableStateOf(false) }
+    val listKeycapsMaterial by addViewModel.listKeycapsMaterial.collectAsStateWithLifecycle()
+
 
     var expandedformFactor by remember { mutableStateOf(false) }
+    val listFormFactor by addViewModel.listFormFactor.collectAsStateWithLifecycle()
+
 
 
     var selectedChip by remember { mutableStateOf(1) }
 
-    val options = listOf(
-        "asd",
-        ";a;ld;clv",
-        "sadasd"
-    )
+
 
     Column(
         modifier = Modifier
@@ -176,7 +191,7 @@ fun AddScreen(
                         expanded = expandedSwichName,
                         onDismissRequest = { expandedSwichName = false }
                     ) {
-                        options.forEach { option ->
+                        listSwichName.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
@@ -215,7 +230,7 @@ fun AddScreen(
                         expanded = expandedSwichType,
                         onDismissRequest = { expandedSwichType = false }
                     ) {
-                        options.forEach { option ->
+                        listSwichType.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
@@ -251,7 +266,7 @@ fun AddScreen(
                         expanded = expandedkeycapsType,
                         onDismissRequest = { expandedkeycapsType = false }
                     ) {
-                        options.forEach { option ->
+                        listKeycapsType.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
@@ -287,7 +302,7 @@ fun AddScreen(
                         expanded = expandedkeycapsMaterial,
                         onDismissRequest = { expandedkeycapsMaterial = false }
                     ) {
-                        options.forEach { option ->
+                        listKeycapsMaterial.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
@@ -323,7 +338,7 @@ fun AddScreen(
                         expanded = expandedformFactor,
                         onDismissRequest = { expandedformFactor = false }
                     ) {
-                        options.forEach { option ->
+                        listFormFactor.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
@@ -376,6 +391,20 @@ fun AddScreen(
             }
 
         }
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxHeight(1f)
+        ) {
+            Button(
+                onClick = {},
+                modifier = Modifier
+                    .fillMaxWidth(1f)
+            ) {
+                Text("Добавить товар")
+            }
+        }
+
     }
 
 }
@@ -434,7 +463,7 @@ val scope = rememberCoroutineScope()
     val height =
         if (images.size == 1) 600.dp
         else if (images.size == 2) 600.dp
-        else if (images.size >= 3) 880.dp
+        else if (images.size >= 3) 600.dp
         else if (images.isEmpty()) 600.dp
         else 300.dp
     val width = if (images.isEmpty()) 600.dp else if(images.size == 1) 600.dp else 300.dp
