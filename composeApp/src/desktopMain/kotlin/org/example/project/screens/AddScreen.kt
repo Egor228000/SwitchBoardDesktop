@@ -3,14 +3,9 @@ package org.example.project.screens
 import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -21,12 +16,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import desktopswitchboard.composeapp.generated.resources.Res
+import desktopswitchboard.composeapp.generated.resources.clear_svgrepo_com
 import desktopswitchboard.composeapp.generated.resources.img_box_svgrepo_com
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.readBytes
+import kotlinx.coroutines.launch
 import org.example.project.viewmodel.AddViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skia.Image
@@ -40,7 +41,7 @@ fun AddScreen(
 
     val images by addViewModel.images.collectAsStateWithLifecycle()
     val name by addViewModel.name.collectAsStateWithLifecycle()
-    var selectedChip by remember { mutableStateOf(0) }
+    var selectedChip by remember { mutableStateOf(1) }
 
     Column(
         modifier = Modifier
@@ -120,6 +121,7 @@ fun AddScreen(
 
 
                 )
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { newValue ->
@@ -128,7 +130,7 @@ fun AddScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Свитчи")},
+                    label = {Text("Свитчи имя")},
                     maxLines = 1
                 )
                 OutlinedTextField(
@@ -139,7 +141,29 @@ fun AddScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Кейкапы")},
+                    label = {Text("Свитчи тип")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Кейкапы тип")},
+                    maxLines = 1
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { newValue ->
+                        addViewModel.updateName(newValue)
+
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(1f),
+                    label = {Text("Кейкапы материал")},
                     maxLines = 1
                 )
                 OutlinedTextField(
@@ -189,14 +213,14 @@ fun AddScreen(
 }
 
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ImageGalleryDropZone(
     images: List<ImageBitmap>,
     onImageDropped: (ImageBitmap) -> Unit,
     onClickClear: () -> Unit
 ) {
-
+val scope = rememberCoroutineScope()
     // State to track hover effect and loaded bitmaps
     var isHovering by remember { mutableStateOf(false) }
 
@@ -229,7 +253,7 @@ fun ImageGalleryDropZone(
                         val bmp = Image
                             .makeFromEncoded(bytes)
                             .toComposeImageBitmap()
-                        onImageDropped(bmp)    //
+                        onImageDropped(bmp)
                     }
                     return true
                 }
@@ -246,7 +270,7 @@ fun ImageGalleryDropZone(
         else if (images.isEmpty()) 600.dp
         else 300.dp
     val width = if (images.isEmpty()) 600.dp else if(images.size == 1) 600.dp else 300.dp
-
+    val stateVertical = rememberScrollState(0)
     Card(
         modifier = Modifier
             .width(width)
@@ -281,42 +305,98 @@ fun ImageGalleryDropZone(
                         textAlign = TextAlign.Center
                     )
                 }
-
             } else {
-                Column(
-                    horizontalAlignment = if (images.size == 1) Alignment.CenterHorizontally else Alignment.End,
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Box() {
+                    Column(
+                        horizontalAlignment = if (images.size == 1) Alignment.CenterHorizontally else Alignment.End,
+                        modifier = Modifier
+                            .verticalScroll(stateVertical)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
 
-                    images.forEach { img ->
-                        Image(
-                            bitmap = img,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(if (images.size == 1) 600.dp else 300.dp),
-                            contentScale = ContentScale.Crop
-                        )
+                        images.forEach { img ->
+                            Image(
+                                bitmap = img,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(if (images.size == 1) 600.dp else 300.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
                     }
-
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                            .fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(stateVertical),
+                        style = ScrollbarStyle(
+                            minimalHeight = 10.dp,
+                            thickness = 10.dp,
+                            shape = RoundedCornerShape(10.dp),
+                            hoverDurationMillis = 10,
+                            unhoverColor = Color.LightGray,
+                            hoverColor = Color.DarkGray
+                        )
+                    )
                 }
+
 
             }
             Column(
                 verticalArrangement = Arrangement.Bottom,
                 modifier = Modifier.fillMaxHeight()
             ) {
-                Button(
-                    onClick = {
-                        onClickClear()
+
+                SplitButtonLayout(
+                    leadingButton = {
+                        SplitButtonDefaults.LeadingButton(
+                            onClick = {
+                                scope.launch {
+                                    val file = FileKit.openFilePicker(type = FileKitType.Image)
+                                    if (file != null) {
+                                        onImageDropped(file.toImageBitmap())
+                                    }
+                                }
+
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black,
+                                disabledContainerColor = Color.White,
+                                disabledContentColor = Color.White
+                            ),
+                        ) {
+                            Text("Добавить файлы")
+                        }
                     },
-                    modifier = Modifier.fillMaxWidth(1f)
-                ) {
-                    Text("Очистить")
-                }
+                    trailingButton = {
+                        SplitButtonDefaults.TrailingButton(
+                            onClick = {
+                                onClickClear()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Black,
+                                disabledContainerColor = Color.White,
+                                disabledContentColor = Color.White
+                            ),
+                        ) {
+                            Icon(
+                                painterResource(Res.drawable.clear_svgrepo_com),
+                                modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                )
             }
         }
     }
+}
+
+suspend fun PlatformFile.toImageBitmap(): ImageBitmap {
+    val bytes = this.readBytes()
+    val skiaImage = Image.makeFromEncoded(bytes)
+    return skiaImage.toComposeImageBitmap()
 }
