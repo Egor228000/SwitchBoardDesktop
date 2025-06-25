@@ -1,5 +1,6 @@
 package org.example.project.screens
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
@@ -19,7 +20,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sun.beans.introspect.PropertyInfo
 import desktopswitchboard.composeapp.generated.resources.Res
+import desktopswitchboard.composeapp.generated.resources.chevron_down
+import desktopswitchboard.composeapp.generated.resources.chevron_up
 import desktopswitchboard.composeapp.generated.resources.clear_svgrepo_com
 import desktopswitchboard.composeapp.generated.resources.img_box_svgrepo_com
 import io.github.vinceglb.filekit.FileKit
@@ -34,6 +38,7 @@ import org.jetbrains.skia.Image
 import java.awt.datatransfer.DataFlavor
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScreen(
     addViewModel: AddViewModel,
@@ -41,7 +46,30 @@ fun AddScreen(
 
     val images by addViewModel.images.collectAsStateWithLifecycle()
     val name by addViewModel.name.collectAsStateWithLifecycle()
+    val description by addViewModel.description.collectAsStateWithLifecycle()
+    val swichName by addViewModel.swichName.collectAsStateWithLifecycle()
+    val swichType by addViewModel.swichType.collectAsStateWithLifecycle()
+    val keycapsType by addViewModel.keycapsType.collectAsStateWithLifecycle()
+    val keycapsMaterial by addViewModel.keycapsMaterial.collectAsStateWithLifecycle()
+    val formFactor by addViewModel.formFactor.collectAsStateWithLifecycle()
+    val stockQuantity by addViewModel.stockQuantity.collectAsStateWithLifecycle()
+    val price by addViewModel.price.collectAsStateWithLifecycle()
+    var expandedSwichName by remember { mutableStateOf(false) }
+    var expandedSwichType by remember { mutableStateOf(false) }
+
+    var expandedkeycapsType by remember { mutableStateOf(false) }
+    var expandedkeycapsMaterial by remember { mutableStateOf(false) }
+
+    var expandedformFactor by remember { mutableStateOf(false) }
+
+
     var selectedChip by remember { mutableStateOf(1) }
+
+    val options = listOf(
+        "asd",
+        ";a;ld;clv",
+        "sadasd"
+    )
 
     Column(
         modifier = Modifier
@@ -109,78 +137,218 @@ fun AddScreen(
                     maxLines = 1
                 )
                 OutlinedTextField(
-                    value = name,
+                    value = description,
                     onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
+                        addViewModel.updateDescription(newValue)
 
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
                     label = {Text("Описание")},
                     maxLines = 3
-
-
                 )
 
+
+
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedSwichName,
+                    onExpandedChange = { expandedSwichName = !expandedSwichName },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // 1) The text field that shows the current selection
+                    OutlinedTextField(
+                        value = swichName,
+                        onValueChange = { /* readOnly = true, so ignore */ },
+                        readOnly = true,
+                        label = { Text("Switch Name") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSwichName)
+                        },
+                        modifier = Modifier
+                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .fillMaxWidth()
+                    )
+
+                    // 2) The dropdown menu itself
+                    ExposedDropdownMenu(
+                        expanded = expandedSwichName,
+                        onDismissRequest = { expandedSwichName = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    addViewModel.updateSwichName(option)
+                                    expandedSwichName = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedSwichType,
+                    onExpandedChange = { expandedSwichType = !expandedSwichType },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // 1) The text field that shows the current selection
+                    OutlinedTextField(
+                        value = swichType,
+                        onValueChange = { /* readOnly = true, so ignore */ },
+                        readOnly = true,
+                        label = { Text("Switch Type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSwichType)
+                        },
+                        modifier = Modifier
+                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .fillMaxWidth()
+                    )
+
+                    // 2) The dropdown menu itself
+                    ExposedDropdownMenu(
+                        expanded = expandedSwichType,
+                        onDismissRequest = { expandedSwichType = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    addViewModel.updateSwichType(option)
+                                    expandedSwichType = false
+                                }
+                            )
+                        }
+                    }
+                }
+                ExposedDropdownMenuBox(
+                    expanded = expandedkeycapsType,
+                    onExpandedChange = { expandedkeycapsType = !expandedkeycapsType },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // 1) The text field that shows the current selection
+                    OutlinedTextField(
+                        value = keycapsType,
+                        onValueChange = { /* readOnly = true, so ignore */ },
+                        readOnly = true,
+                        label = { Text("Keycap Type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedkeycapsType)
+                        },
+                        modifier = Modifier
+                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .fillMaxWidth()
+                    )
+
+                    // 2) The dropdown menu itself
+                    ExposedDropdownMenu(
+                        expanded = expandedkeycapsType,
+                        onDismissRequest = { expandedkeycapsType = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    addViewModel.updateKeycapsType(option)
+                                    expandedkeycapsType = false
+                                }
+                            )
+                        }
+                    }
+                }
+                ExposedDropdownMenuBox(
+                    expanded = expandedkeycapsMaterial,
+                    onExpandedChange = { expandedkeycapsMaterial = !expandedkeycapsMaterial },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // 1) The text field that shows the current selection
+                    OutlinedTextField(
+                        value = keycapsMaterial,
+                        onValueChange = { /* readOnly = true, so ignore */ },
+                        readOnly = true,
+                        label = { Text("Keycap Material") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedkeycapsMaterial)
+                        },
+                        modifier = Modifier
+                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .fillMaxWidth()
+                    )
+
+                    // 2) The dropdown menu itself
+                    ExposedDropdownMenu(
+                        expanded = expandedkeycapsMaterial,
+                        onDismissRequest = { expandedkeycapsMaterial = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    addViewModel.updateKeycapsMaterial(option)
+                                    expandedkeycapsMaterial = false
+                                }
+                            )
+                        }
+                    }
+                }
+                ExposedDropdownMenuBox(
+                    expanded = expandedformFactor,
+                    onExpandedChange = { expandedformFactor = !expandedformFactor },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    // 1) The text field that shows the current selection
+                    OutlinedTextField(
+                        value = formFactor,
+                        onValueChange = { /* readOnly = true, so ignore */ },
+                        readOnly = true,
+                        label = { Text("Форм-фактор") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedformFactor)
+                        },
+                        modifier = Modifier
+                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .fillMaxWidth()
+                    )
+
+                    // 2) The dropdown menu itself
+                    ExposedDropdownMenu(
+                        expanded = expandedformFactor,
+                        onDismissRequest = { expandedformFactor = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    addViewModel.updateFormFactor(option)
+                                    expandedformFactor = false
+                                }
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
-                    value = name,
+                    value = stockQuantity,
                     onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
+                        addViewModel.updateStockQuantity(newValue)
 
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Свитчи имя")},
+                    label = {Text("Количество")},
                     maxLines = 1
                 )
                 OutlinedTextField(
-                    value = name,
+                    value = price,
                     onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(1f),
-                    label = {Text("Свитчи тип")},
-                    maxLines = 1
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(1f),
-                    label = {Text("Кейкапы тип")},
-                    maxLines = 1
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(1f),
-                    label = {Text("Кейкапы материал")},
-                    maxLines = 1
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(1f),
-                    label = {Text("Форм-фактор")},
-                    maxLines = 1
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
+                        addViewModel.updatePrice(newValue)
 
                     },
                     modifier = Modifier
@@ -244,7 +412,7 @@ val scope = rememberCoroutineScope()
 
                 // Keep only common image files
                 val imageFiles = dropped.filter { file ->
-                    file.extension.lowercase() in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp")
+                    file.extension.lowercase() in listOf("jpg", "jpeg", "png", "webp")
                 }
                 if (imageFiles.isNotEmpty()) {
                     // Load each into an ImageBitmap
@@ -353,7 +521,7 @@ val scope = rememberCoroutineScope()
                         SplitButtonDefaults.LeadingButton(
                             onClick = {
                                 scope.launch {
-                                    val file = FileKit.openFilePicker(type = FileKitType.Image)
+                                    val file = FileKit.openFilePicker(type = FileKitType.Image, title = "Выберите изображение")
                                     if (file != null) {
                                         onImageDropped(file.toImageBitmap())
                                     }
