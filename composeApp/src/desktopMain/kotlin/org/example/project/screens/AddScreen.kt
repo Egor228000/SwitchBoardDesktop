@@ -1,10 +1,10 @@
 package org.example.project.screens
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,13 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sun.beans.introspect.PropertyInfo
 import desktopswitchboard.composeapp.generated.resources.Res
-import desktopswitchboard.composeapp.generated.resources.chevron_down
-import desktopswitchboard.composeapp.generated.resources.chevron_up
 import desktopswitchboard.composeapp.generated.resources.clear_svgrepo_com
 import desktopswitchboard.composeapp.generated.resources.img_box_svgrepo_com
 import io.github.vinceglb.filekit.FileKit
@@ -32,6 +30,7 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.launch
+import org.example.project.screens.addKeyBoard.AddKeyBoardEvent
 import org.example.project.viewmodel.AddViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skia.Image
@@ -53,17 +52,6 @@ fun AddScreen(
     }
 
 
-    val images by addViewModel.images.collectAsStateWithLifecycle()
-    val name by addViewModel.name.collectAsStateWithLifecycle()
-    val description by addViewModel.description.collectAsStateWithLifecycle()
-    val swichName by addViewModel.swichName.collectAsStateWithLifecycle()
-    val swichType by addViewModel.swichType.collectAsStateWithLifecycle()
-    val keycapsType by addViewModel.keycapsType.collectAsStateWithLifecycle()
-    val keycapsMaterial by addViewModel.keycapsMaterial.collectAsStateWithLifecycle()
-    val formFactor by addViewModel.formFactor.collectAsStateWithLifecycle()
-    val stockQuantity by addViewModel.stockQuantity.collectAsStateWithLifecycle()
-    val price by addViewModel.price.collectAsStateWithLifecycle()
-
     var expandedSwichName by remember { mutableStateOf(false) }
     val listSwichName by addViewModel.listSwitchName.collectAsStateWithLifecycle()
 
@@ -81,7 +69,7 @@ fun AddScreen(
     val listFormFactor by addViewModel.listFormFactor.collectAsStateWithLifecycle()
 
 
-
+    val uiState by addViewModel.uiState.collectAsStateWithLifecycle()
     var selectedChip by remember { mutableStateOf(1) }
 
 
@@ -103,7 +91,7 @@ fun AddScreen(
                     onClick = {
                         selectedChip = 1
                     },
-                    label = {Text("Клавиатура")},
+                    label = { Text("Клавиатура") },
                     colors = AssistChipDefaults.assistChipColors(
                         if (selectedChip == 1) Color.LightGray else Color.White
                     )
@@ -112,7 +100,7 @@ fun AddScreen(
                     onClick = {
                         selectedChip = 2
                     },
-                    label = {Text("Свитчи")},
+                    label = { Text("Свитчи") },
                     colors = AssistChipDefaults.assistChipColors(
                         if (selectedChip == 2) Color.LightGray else Color.White
                     )
@@ -121,7 +109,7 @@ fun AddScreen(
                     onClick = {
                         selectedChip = 3
                     },
-                    label = {Text("Кейкапы")},
+                    label = { Text("Кейкапы") },
                     colors = AssistChipDefaults.assistChipColors(
                         if (selectedChip == 3) Color.LightGray else Color.White
                     )
@@ -141,25 +129,28 @@ fun AddScreen(
 
             ) {
                 OutlinedTextField(
-                    value = name,
+                    value = uiState.name,
                     onValueChange = { newValue ->
-                        addViewModel.updateName(newValue)
-
+                        addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardName(newValue))
                     },
                     modifier = Modifier
-                        .fillMaxWidth(1f),
-                    label = {Text("Имя")},
-                    maxLines = 1
+                        .fillMaxWidth(),
+                    label = { Text("Имя") },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        capitalization = KeyboardCapitalization.Sentences,
+                    )
                 )
                 OutlinedTextField(
-                    value = description,
+                    value = uiState.description,
                     onValueChange = { newValue ->
-                        addViewModel.updateDescription(newValue)
+                        addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardDescription(newValue))
+
 
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Описание")},
+                    label = { Text("Описание") },
                     maxLines = 3
                 )
 
@@ -174,7 +165,7 @@ fun AddScreen(
                 ) {
                     // 1) The text field that shows the current selection
                     OutlinedTextField(
-                        value = swichName,
+                        value = uiState.swichName,
                         onValueChange = { /* readOnly = true, so ignore */ },
                         readOnly = true,
                         label = { Text("Switch Name") },
@@ -182,7 +173,10 @@ fun AddScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSwichName)
                         },
                         modifier = Modifier
-                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                true
+                            )   // anchors the menu to the text field
                             .fillMaxWidth()
                     )
 
@@ -195,7 +189,7 @@ fun AddScreen(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    addViewModel.updateSwichName(option)
+                                    addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardSwichName(option))
                                     expandedSwichName = false
                                 }
                             )
@@ -213,7 +207,7 @@ fun AddScreen(
                 ) {
                     // 1) The text field that shows the current selection
                     OutlinedTextField(
-                        value = swichType,
+                        value = uiState.swichType,
                         onValueChange = { /* readOnly = true, so ignore */ },
                         readOnly = true,
                         label = { Text("Switch Type") },
@@ -221,7 +215,10 @@ fun AddScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSwichType)
                         },
                         modifier = Modifier
-                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                true
+                            )   // anchors the menu to the text field
                             .fillMaxWidth()
                     )
 
@@ -234,7 +231,8 @@ fun AddScreen(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    addViewModel.updateSwichType(option)
+                                    addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardSwichType(option))
+
                                     expandedSwichType = false
                                 }
                             )
@@ -249,7 +247,7 @@ fun AddScreen(
                 ) {
                     // 1) The text field that shows the current selection
                     OutlinedTextField(
-                        value = keycapsType,
+                        value = uiState.keycapsType,
                         onValueChange = { /* readOnly = true, so ignore */ },
                         readOnly = true,
                         label = { Text("Keycap Type") },
@@ -257,7 +255,10 @@ fun AddScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedkeycapsType)
                         },
                         modifier = Modifier
-                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                true
+                            )   // anchors the menu to the text field
                             .fillMaxWidth()
                     )
 
@@ -270,7 +271,8 @@ fun AddScreen(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    addViewModel.updateKeycapsType(option)
+                                    addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardKeycapsType(option))
+
                                     expandedkeycapsType = false
                                 }
                             )
@@ -285,7 +287,7 @@ fun AddScreen(
                 ) {
                     // 1) The text field that shows the current selection
                     OutlinedTextField(
-                        value = keycapsMaterial,
+                        value = uiState.keycapsMaterial,
                         onValueChange = { /* readOnly = true, so ignore */ },
                         readOnly = true,
                         label = { Text("Keycap Material") },
@@ -293,7 +295,10 @@ fun AddScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedkeycapsMaterial)
                         },
                         modifier = Modifier
-                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                true
+                            )   // anchors the menu to the text field
                             .fillMaxWidth()
                     )
 
@@ -306,7 +311,8 @@ fun AddScreen(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    addViewModel.updateKeycapsMaterial(option)
+                                    addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardKeycapsMaterial(option))
+
                                     expandedkeycapsMaterial = false
                                 }
                             )
@@ -321,7 +327,7 @@ fun AddScreen(
                 ) {
                     // 1) The text field that shows the current selection
                     OutlinedTextField(
-                        value = formFactor,
+                        value = uiState.formFactor,
                         onValueChange = { /* readOnly = true, so ignore */ },
                         readOnly = true,
                         label = { Text("Форм-фактор") },
@@ -329,7 +335,10 @@ fun AddScreen(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedformFactor)
                         },
                         modifier = Modifier
-                            .menuAnchor( ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)   // anchors the menu to the text field
+                            .menuAnchor(
+                                ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                true
+                            )   // anchors the menu to the text field
                             .fillMaxWidth()
                     )
 
@@ -342,7 +351,8 @@ fun AddScreen(
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
-                                    addViewModel.updateFormFactor(option)
+                                    addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardFormFactor(option))
+
                                     expandedformFactor = false
                                 }
                             )
@@ -350,25 +360,26 @@ fun AddScreen(
                     }
                 }
                 OutlinedTextField(
-                    value = stockQuantity,
+                    value = uiState.stockQuantity,
                     onValueChange = { newValue ->
-                        addViewModel.updateStockQuantity(newValue)
+                        addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardStockQuantity(newValue))
 
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Количество")},
+                    label = { Text("Количество") },
                     maxLines = 1
                 )
                 OutlinedTextField(
-                    value = price,
+                    value = uiState.price,
                     onValueChange = { newValue ->
-                        addViewModel.updatePrice(newValue)
+                        addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardPrice(newValue))
+
 
                     },
                     modifier = Modifier
                         .fillMaxWidth(1f),
-                    label = {Text("Цена")},
+                    label = { Text("Цена") },
                     maxLines = 1
                 )
             }
@@ -382,9 +393,11 @@ fun AddScreen(
 
 
                 ImageGalleryDropZone(
-                    images,
-                    onImageDropped = { addViewModel.addImage(it) },
-                    onClickClear = {addViewModel.clearImage()}
+                    uiState.listImages,
+                    onImageDropped = { addImage ->
+                        addViewModel.onEvent(AddKeyBoardEvent.AddKeyBoardListImages(addImage))
+                    },
+                    onClickClear = { addViewModel.onEvent(AddKeyBoardEvent.onClearButton) }
                 )
 
 
@@ -415,9 +428,9 @@ fun AddScreen(
 fun ImageGalleryDropZone(
     images: List<ImageBitmap>,
     onImageDropped: (ImageBitmap) -> Unit,
-    onClickClear: () -> Unit
+    onClickClear: () -> Unit,
 ) {
-val scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     // State to track hover effect and loaded bitmaps
     var isHovering by remember { mutableStateOf(false) }
 
@@ -466,7 +479,7 @@ val scope = rememberCoroutineScope()
         else if (images.size >= 3) 600.dp
         else if (images.isEmpty()) 600.dp
         else 300.dp
-    val width = if (images.isEmpty()) 600.dp else if(images.size == 1) 600.dp else 300.dp
+    val width = if (images.isEmpty()) 600.dp else if (images.size == 1) 600.dp else 300.dp
     val stateVertical = rememberScrollState(0)
     Card(
         modifier = Modifier
@@ -550,7 +563,8 @@ val scope = rememberCoroutineScope()
                         SplitButtonDefaults.LeadingButton(
                             onClick = {
                                 scope.launch {
-                                    val file = FileKit.openFilePicker(type = FileKitType.Image, title = "Выберите изображение")
+                                    val file =
+                                        FileKit.openFilePicker(type = FileKitType.Image, title = "Выберите изображение")
                                     if (file != null) {
                                         onImageDropped(file.toImageBitmap())
                                     }

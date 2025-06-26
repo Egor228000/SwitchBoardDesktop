@@ -1,6 +1,5 @@
 package org.example.project.viewmodel
 
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.client.*
@@ -11,8 +10,11 @@ import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.example.project.screens.addKeyBoard.AddKeyBoardEvent
+import org.example.project.screens.addKeyBoard.AddKeyBoardUiState
 
 
 class AddViewModel() : ViewModel() {
@@ -24,40 +26,88 @@ class AddViewModel() : ViewModel() {
         }
     }
 
-    //drag&drop
-    private val _images = MutableStateFlow<List<ImageBitmap>>(emptyList())
-    val images: StateFlow<List<ImageBitmap>> = _images
+    private val _uiState = MutableStateFlow(AddKeyBoardUiState())
+    val uiState: StateFlow<AddKeyBoardUiState> = _uiState
 
-
-    fun clearImage() {
+    fun onEvent(event: AddKeyBoardEvent) {
         viewModelScope.launch {
-            _images.value = emptyList()
+
+            when (event) {
+
+                is AddKeyBoardEvent.AddKeyBoardName -> {
+                    _uiState.update { it.copy(event.name) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardDescription -> {
+                    _uiState.update { it.copy(description = event.description) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardSwichName -> {
+                    _uiState.update { it.copy(swichName = event.swichName) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardSwichType -> {
+                    _uiState.update { it.copy(swichType = event.swichType) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardKeycapsType -> {
+                    _uiState.update { it.copy(keycapsType = event.keycapsType) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardKeycapsMaterial -> {
+                    _uiState.update { it.copy(keycapsMaterial = event.keycapsMaterial) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardFormFactor -> {
+                    _uiState.update { it.copy(formFactor = event.formFactor) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardStockQuantity -> {
+                    _uiState.update { it.copy(stockQuantity = event.stockQuantity) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardPrice -> {
+                    _uiState.update { it.copy(price = event.price) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardListKeycapsMaterial -> {
+                    _uiState.update { it.copy(listKeycapsMaterial = event.listKeycapsMaterial) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardListKeycapsType -> {
+                    _uiState.update { it.copy(listKeycapsType = event.listKeycapsType) }
+
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardListSwichName -> {
+                    _uiState.update { it.copy(listSwichName = event.listSwichName) }
+
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardListSwichType -> {
+                    _uiState.update { it.copy(listSwichType = event.listSwichType) }
+
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardlistFormFactor -> {
+                    _uiState.update { it.copy(listFormFactor = event.listFormFactor) }
+
+                }
+
+                is AddKeyBoardEvent.onClearButton -> {
+                    _uiState.update { it.copy(listImages = emptyList()) }
+                }
+
+                is AddKeyBoardEvent.AddKeyBoardListImages -> {
+                    _uiState.update { it.copy(listImages = it.listImages + event.listImages) }
+
+                }
+
+            }
         }
     }
-    fun addImage(img: ImageBitmap) {
-        _images.value = _images.value + img
-    }
 
-    private val _name = MutableStateFlow("")
-    val name: StateFlow<String> = _name
 
-    fun updateName(newName: String) {
-        _name.value = newName
-    }
-
-    private val _description = MutableStateFlow("")
-    val description: StateFlow<String> = _description
-
-    fun updateDescription(newDescription: String) {
-        _description.value = newDescription
-    }
-
-    private val _swichName = MutableStateFlow("")
-    val swichName: StateFlow<String> = _swichName
-
-    fun updateSwichName(newSwichName: String) {
-        _swichName.value = newSwichName
-    }
     // Запрос на сервер
     private val _listSwitchName = MutableStateFlow<List<String>>(emptyList())
     val listSwitchName: StateFlow<List<String>> = _listSwitchName
@@ -76,14 +126,6 @@ class AddViewModel() : ViewModel() {
     }
 
 
-
-
-    private val _swichType = MutableStateFlow("")
-    val swichType: StateFlow<String> = _swichType
-
-    fun updateSwichType(newSwichType: String) {
-        _swichType.value = newSwichType
-    }
     private val _listSwichType = MutableStateFlow<List<String>>(emptyList())
     val listSwichType: StateFlow<List<String>> = _listSwichType
 
@@ -100,12 +142,6 @@ class AddViewModel() : ViewModel() {
         }
     }
 
-    private val _keycapsType = MutableStateFlow("")
-    val keycapsType: StateFlow<String> = _keycapsType
-
-    fun updateKeycapsType(newKeycapsType: String) {
-        _keycapsType.value = newKeycapsType
-    }
 
     private val _listKeycapsType = MutableStateFlow<List<String>>(emptyList())
     val listKeycapsType: StateFlow<List<String>> = _listKeycapsType
@@ -123,12 +159,6 @@ class AddViewModel() : ViewModel() {
         }
     }
 
-    private val _keycapsMaterial = MutableStateFlow("")
-    val keycapsMaterial: StateFlow<String> = _keycapsMaterial
-
-    fun updateKeycapsMaterial(newKeycapsMaterial: String) {
-        _keycapsMaterial.value = newKeycapsMaterial
-    }
 
     private val _listKeycapsMaterial = MutableStateFlow<List<String>>(emptyList())
     val listKeycapsMaterial: StateFlow<List<String>> = _listKeycapsMaterial
@@ -146,12 +176,6 @@ class AddViewModel() : ViewModel() {
         }
     }
 
-    private val _formFactor = MutableStateFlow("")
-    val formFactor: StateFlow<String> = _formFactor
-
-    fun updateFormFactor(newFormFactor: String) {
-        _formFactor.value = newFormFactor
-    }
 
     private val _listFormFactor = MutableStateFlow<List<String>>(emptyList())
     val listFormFactor: StateFlow<List<String>> = _listFormFactor
@@ -168,24 +192,4 @@ class AddViewModel() : ViewModel() {
             }
         }
     }
-
-
-    private val _price = MutableStateFlow("")
-    val price: StateFlow<String> = _price
-
-    fun updatePrice(newPrice: String) {
-        _price.value = newPrice
-    }
-
-    private val _stockQuantity = MutableStateFlow("")
-    val stockQuantity: StateFlow<String> = _stockQuantity
-
-    fun updateStockQuantity(newStockQuantity: String) {
-        _stockQuantity.value = newStockQuantity
-    }
-
-
-
-
-
 }
